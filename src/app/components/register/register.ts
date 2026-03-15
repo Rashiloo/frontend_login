@@ -13,7 +13,8 @@ import { CommonModule } from '@angular/common';
 })
 export class RegisterComponent {
   registerData = {
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -24,42 +25,40 @@ export class RegisterComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   onRegister() {
-    // Validar que las contraseñas coincidan
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.registerData.firstName.trim() || !this.registerData.lastName.trim()) {
+      this.errorMessage = 'Debes ingresar nombre y apellido';
+      return;
+    }
+
     if (this.registerData.password !== this.registerData.confirmPassword) {
       this.errorMessage = 'Las contraseñas no coinciden';
-      this.successMessage = '';
       return;
     }
 
-    // Validar longitud mínima de contraseña
-    if (this.registerData.password.length < 6) {
-      this.errorMessage = 'La contraseña debe tener al menos 6 caracteres';
-      this.successMessage = '';
+    if (this.registerData.password.length < 8) {
+      this.errorMessage = 'La contraseña debe tener al menos 8 caracteres';
       return;
     }
 
-    // Crear objeto para enviar al backend
     const userToRegister = {
-      name: this.registerData.name,
-      email: this.registerData.email,
+      firstName: this.registerData.firstName.trim(),
+      lastName: this.registerData.lastName.trim(),
+      email: this.registerData.email.trim(),
       password: this.registerData.password
     };
 
-    // Llamar al servicio de registro
     this.authService.register(userToRegister).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         this.successMessage = 'Usuario creado exitosamente. Redirigiendo al login...';
-        this.errorMessage = '';
-        
-        // Redirigir al login después de 2 segundos
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
       },
-      error: (err: any) => {
+      error: (err) => {
         this.errorMessage = 'Error al crear usuario. El email podría estar en uso.';
-        this.successMessage = '';
-        console.error('Error en el registro', err);
       }
     });
   }

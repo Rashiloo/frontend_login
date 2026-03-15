@@ -5,16 +5,29 @@
       <p>Regístrate para acceder a todas las funcionalidades</p>
     </div>
     
-    <form (ngSubmit)="onRegister()" class="register-form">
+    <form class="register-form">
       <div class="form-group">
-        <label for="name">Nombre Completo</label>
+        <label for="firstName">Nombre</label>
         <input 
           type="text" 
-          id="name" 
-          name="name" 
-          [(ngModel)]="registerData.name" 
+          id="firstName" 
+          name="firstName" 
+          [(ngModel)]="registerData.firstName" 
           required
-          placeholder="Juan Pérez"
+          placeholder="Juan"
+          class="form-input"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Apellido</label>
+        <input 
+          type="text" 
+          id="lastName" 
+          name="lastName" 
+          [(ngModel)]="registerData.lastName" 
+          required
+          placeholder="Pérez"
           class="form-input"
         >
       </div>
@@ -40,7 +53,7 @@
           name="password" 
           [(ngModel)]="registerData.password" 
           required
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Mínimo 8 caracteres"
           class="form-input"
         >
       </div>
@@ -66,13 +79,13 @@
         {{ successMessage }}
       </div>
 
-      <button type="submit" class="register-button" [disabled]="!registerData.name || !registerData.email || !registerData.password || !registerData.confirmPassword">
+      <button type="button" (click)="onRegister()" class="register-button" [disabled]="!registerData.firstName || !registerData.lastName || !registerData.email || !registerData.password || !registerData.confirmPassword">
         Crear Cuenta
       </button>
     </form>
     
     <div class="register-footer">
-      <p>¿Ya tienes cuenta? <a href="#" (click)="goToLogin()" class="login-link">Inicia Sesión</a></p>
+      <p>¿Ya tienes cuenta? <button (click)="goToLogin()" class="login-link">Inicia Sesión</button></p>
     </div>
   </div>
 </div>

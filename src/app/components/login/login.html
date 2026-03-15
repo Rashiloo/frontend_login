@@ -27,7 +27,7 @@
           name="password" 
           [(ngModel)]="loginData.password" 
           required
-          placeholder="••••••••"
+          placeholder="•••••••"
           class="form-input"
         >
       </div>
@@ -42,7 +42,7 @@
     </form>
     
     <div class="login-footer">
-      <p>¿No tienes cuenta? <a href="#" class="register-link">Regístrate</a></p>
+      <p>¿No tienes cuenta? <button (click)="goToRegister()" class="register-link">Regístrate</button></p>
     </div>
   </div>
 </div>
