@@ -124,11 +124,11 @@ export class ForgotPasswordComponent {
   forgotForm: FormGroup;
   errorMessage: string = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private passwordRecoveryService: PasswordRecoveryService,
-    private router: Router
-  ) {
+  private fb = inject(FormBuilder);
+  private passwordRecoveryService = inject(PasswordRecoveryService);
+  private router = inject(Router);
+
+  constructor() {
     this.forgotForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
     });
@@ -139,14 +139,19 @@ export class ForgotPasswordComponent {
       this.errorMessage = '';
       this.passwordRecoveryService.forgotPassword(this.forgotForm.value.email).subscribe({
         next: (response: any) => {
-          alert('Se han enviado instrucciones a tu correo');
+          // Mostrar mensaje de éxito más claro
+          alert('Se han enviado instrucciones a tu correo electrónico. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.');
+          // Redirigir al login después de un tiempo
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
         },
         error: (error: any) => {
-          this.errorMessage = 'Error al enviar instrucciones. Inténtalo de nuevo.';
+          this.errorMessage = 'Error al enviar instrucciones. Verifica que el correo esté registrado o intenta de nuevo.';
         }
       });
     } else {
-      this.errorMessage = 'Por favor, ingresa un correo válido';
+      this.errorMessage = 'Por favor, ingresa un correo electrónico válido';
     }
   }
 }

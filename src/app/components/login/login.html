@@ -39,6 +39,7 @@
       <button type="submit" class="login-button" [disabled]="!loginData.email || !loginData.password">
         Iniciar Sesión
       </button>
+      <button (click)="goToForgotPassword()" class="forgot-link">¿Olvidaste tu contraseña?</button>
     </form>
     
     <div class="login-footer">
