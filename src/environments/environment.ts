@@ -4,7 +4,7 @@ export const environment = {
 
   production: false,
 
-  apiUrl: 'http://localhost:8080/api/auth', // URL local del backend para pruebas
+  apiUrl: 'https://backend-login-v7ls.onrender.com/api/auth', // URL del backend en producción (Render)
 
   appName: 'Login System',
 
