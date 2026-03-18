@@ -30,6 +30,9 @@
           placeholder="•••••••"
           class="form-input"
         >
+        <div class="forgot-password-link">
+          <button type="button" (click)="goToForgotPassword()" class="link-button">¿Olvidaste tu contraseña?</button>
+        </div>
       </div>
 
       <div *ngIf="errorMessage" class="error-message">
@@ -39,7 +42,6 @@
       <button type="submit" class="login-button" [disabled]="!loginData.email || !loginData.password">
         Iniciar Sesión
       </button>
-      <button (click)="goToForgotPassword()" class="forgot-link">¿Olvidaste tu contraseña?</button>
     </form>
     
     <div class="login-footer">

@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { PasswordRecoveryService } from '../../services/password-recovery.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   template: `
     <div class="reset-container">
       <div class="reset-card">
@@ -15,53 +16,71 @@ import { PasswordRecoveryService } from '../../services/password-recovery.servic
           <p>Ingresa tu nueva contraseña</p>
         </div>
         
-        <form [formGroup]="resetForm" (ngSubmit)="onResetPassword()">
-          <div class="form-group">
-            <label for="newPassword">Nueva Contraseña</label>
-            <input 
-              type="password" 
-              id="newPassword" 
-              formControlName="newPassword" 
-              placeholder="Ingresa tu nueva contraseña"
-              class="form-control"
-              required
-            />
-            @if (resetForm.get('newPassword')?.invalid && resetForm.get('newPassword')?.touched) {
-              <small class="error-text">La contraseña es requerida</small>
-            }
+        @if (!hasRequiredParams) {
+          <div class="error-message">
+            Token inválido o expirado. Por favor, solicita un nuevo código de recuperación.
           </div>
-          
-          <div class="form-group">
-            <label for="confirmPassword">Confirmar Contraseña</label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              formControlName="confirmPassword" 
-              placeholder="Confirma tu nueva contraseña"
-              class="form-control"
-              required
-            />
-            @if (resetForm.get('confirmPassword')?.invalid && resetForm.get('confirmPassword')?.touched) {
-              <small class="error-text">Las contraseñas no coinciden</small>
-            }
+          <div class="back-link">
+            <a routerLink="/forgot-password">Solicitar nuevo código</a>
           </div>
-          
-          @if (errorMessage) {
-            <div class="error-message">
-              {{ errorMessage }}
+        } @else {
+          <form [formGroup]="resetForm" (ngSubmit)="onResetPassword()">
+            <div class="verification-badge">
+              <span>✅ Identidad verificada</span>
+              <small>{{ email }}</small>
             </div>
-          }
-          
-          @if (successMessage) {
-            <div class="success-message">
-              {{ successMessage }}
+
+            <div class="form-group">
+              <label for="newPassword">Nueva Contraseña</label>
+              <input 
+                type="password" 
+                id="newPassword" 
+                formControlName="newPassword" 
+                placeholder="Mínimo 6 caracteres"
+                class="form-control"
+                required
+              />
+              @if (resetForm.get('newPassword')?.invalid && resetForm.get('newPassword')?.touched) {
+                <small class="error-text">La contraseña debe tener al menos 6 caracteres</small>
+              }
             </div>
-          }
-          
-          <button type="submit" class="reset-button" [disabled]="resetForm.invalid">
-            Restablecer Contraseña
-          </button>
-        </form>
+            
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Contraseña</label>
+              <input 
+                type="password" 
+                id="confirmPassword" 
+                formControlName="confirmPassword" 
+                placeholder="Repite tu contraseña"
+                class="form-control"
+                required
+              />
+              @if (resetForm.hasError('mismatch') && resetForm.get('confirmPassword')?.touched) {
+                <small class="error-text">Las contraseñas no coinciden</small>
+              }
+            </div>
+            
+            @if (errorMessage) {
+              <div class="error-message">
+                {{ errorMessage }}
+              </div>
+            }
+            
+            @if (successMessage) {
+              <div class="success-message">
+                {{ successMessage }}
+              </div>
+            }
+            
+            <button type="submit" class="reset-button" [disabled]="resetForm.invalid || isLoading">
+              {{ isLoading ? 'Procesando...' : 'Restablecer Contraseña' }}
+            </button>
+          </form>
+        }
+        
+        <div class="back-link">
+          <a routerLink="/login">← Volver al login</a>
+        </div>
       </div>
     </div>
   `,
@@ -98,6 +117,28 @@ import { PasswordRecoveryService } from '../../services/password-recovery.servic
       color: #666;
       margin: 10px 0;
     }
+
+    .verification-badge {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .verification-badge span {
+      display: block;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .verification-badge small {
+      display: block;
+      opacity: 0.9;
+      margin-top: 5px;
+      font-size: 14px;
+    }
     
     .form-group {
       margin-bottom: 15px;
@@ -127,24 +168,30 @@ import { PasswordRecoveryService } from '../../services/password-recovery.servic
     
     .reset-button {
       width: 100%;
-      padding: 12px;
-      background: #007bff;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 500;
+      font-size: 16px;
+      margin-top: 10px;
     }
     
     .reset-button:disabled {
-      background: #6c757d;
+      background: #ccc;
       cursor: not-allowed;
+    }
+
+    .reset-button:hover:not(:disabled) {
+      opacity: 0.9;
     }
     
     .error-message {
       color: #dc3545;
       background: #f8d7da;
-      padding: 10px;
+      padding: 12px;
       border-radius: 4px;
       margin-bottom: 15px;
       text-align: center;
@@ -153,10 +200,27 @@ import { PasswordRecoveryService } from '../../services/password-recovery.servic
     .success-message {
       color: #155724;
       background: #d4edda;
-      padding: 10px;
+      padding: 12px;
       border-radius: 4px;
       margin-bottom: 15px;
       text-align: center;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .back-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
     }
   `]
 })
@@ -164,7 +228,13 @@ export class ResetPasswordComponent {
   resetForm: FormGroup;
   errorMessage: string = '';
   successMessage: string = '';
+  isLoading: boolean = false;
+  
   token: string = '';
+  email: string = '';
+  operationToken: string = '';
+  verificationCode: string = '';
+  hasRequiredParams: boolean = false;
 
   private fb = inject(FormBuilder);
   private passwordRecoveryService = inject(PasswordRecoveryService);
@@ -177,12 +247,18 @@ export class ResetPasswordComponent {
       confirmPassword: ['', Validators.required]
     }, { validator: this.passwordMatchValidator });
 
-    // Obtener el token de la URL
-    this.token = this.route.snapshot.queryParamMap.get('token') || '';
-    
-    if (!this.token) {
-      this.errorMessage = 'Token inválido o expirado';
-    }
+    this.route.queryParamMap.subscribe(params => {
+      this.token = params.get('token') || '';
+      this.email = params.get('email') || '';
+      this.operationToken = params.get('operationToken') || '';
+      this.verificationCode = params.get('code') || '';
+      
+      this.hasRequiredParams = !!(this.token && this.email && this.operationToken && this.verificationCode);
+      
+      if (!this.hasRequiredParams) {
+        this.errorMessage = 'Faltan parámetros de verificación. Por favor, reinicia el proceso de recuperación.';
+      }
+    });
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -192,21 +268,40 @@ export class ResetPasswordComponent {
   }
 
   onResetPassword() {
-    if (this.resetForm.valid && this.token) {
+    if (this.resetForm.valid && this.hasRequiredParams) {
+      this.isLoading = true;
       this.errorMessage = '';
       this.successMessage = '';
       
       const newPassword = this.resetForm.value.newPassword;
       
-      this.passwordRecoveryService.resetPassword(this.token, newPassword).subscribe({
+      console.log('🔥 Enviando reset-password:', {
+        email: this.email,
+        token: this.token,
+        operationToken: this.operationToken,
+        verificationCode: this.verificationCode,
+        newPassword: newPassword
+      });
+      
+      this.passwordRecoveryService.resetPasswordWithVerification(
+        this.email,
+        this.token,
+        this.operationToken,
+        this.verificationCode,
+        newPassword
+      ).subscribe({
         next: (response: any) => {
-          this.successMessage = 'Contraseña restablecida exitosamente';
+          console.log('✅ Respuesta reset-password:', response);
+          this.isLoading = false;
+          this.successMessage = 'Contraseña restablecida exitosamente. Redirigiendo al login...';
           setTimeout(() => {
             this.router.navigate(['/login']);
           }, 2000);
         },
         error: (error: any) => {
-          this.errorMessage = 'Error al restablecer la contraseña. El token puede haber expirado.';
+          console.log('❌ Error reset-password:', error);
+          this.isLoading = false;
+          this.errorMessage = error.error?.message || 'Error al restablecer la contraseña. El token puede haber expirado.';
         }
       });
     } else {
